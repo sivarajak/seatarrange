@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-configuration PUBLIC "-//Hibernate/Hibernate Configuration DTD 3.0//EN" "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+	<session-factory>
+		<!-- Database connection settings -->
+	  		
+		<property name="connection.driver_class">com.microsoft.sqlserver.jdbc.SQLServerDriver</property>
+		<property name="connection.url">jdbc:sqlserver://localhost:1433;DatabaseName=SMDB</property>
+		<property name="connection.username">sa</property>
+		<property name="connection.password">abc@123</property>
+		
+		 <!--<property name="hibernate.connection.datasource">MSSQLDS</property>
+		<property name="connection.retrieveMessagesFromServerOnGetMessage">true</property>
+		<property name="hibernate.jndi.url">jnp://127.0.0.1:11099</property>
+		<property name="hibernate.jndi.class">org.jnp.interfaces.NamingContextFactory</property>  -->          
+
+		<!-- JDBC connection pool (use the built-in) -->
+		<property name="connection.pool_size">1</property>
+
+		<!-- SQL dialect -->
+		<property name="dialect">org.hibernate.dialect.SQLServerDialect</property>
+		
+		<property name="hibernate.jdbc.batch_size">20</property>
+		<!-- Enabling Container Managed Transaction 
+		<property name="hibernate.transaction.manager_lookup_class">org.hibernate.transaction.JBossTransactionManagerLookup</property>
+		<property name="hibernate.transaction.factory_class">org.hibernate.transaction.CMTTransactionFactory</property>-->
+	
+
+		<!-- Enable Hibernate's automatic session context management 
+		<property name="current_session_context_class">jta</property>-->
+
+		<!-- Disable the second-level cache  
+		<property name="cache.provider_class">org.hibernate.cache.NoCacheProvider</property>-->
+
+		<!-- Echo all executed SQL to stdout -->
+		<property name="show_sql">false</property>
+		
+		<!-- Hibernate Isolation Level [READCOMMITED SNAPSHOT ISOLATION]
+		<property name="connection.isolation">4096</property>-->
+		
+		<!-- Framework HBM`s -->	
+		<mapping resource="conf/hbm/Employee.hbm.xml"/>
+		<mapping resource="conf/hbm/Location.hbm.xml"/>
+	</session-factory>
+</hibernate-configuration>

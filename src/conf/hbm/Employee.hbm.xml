@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping schema="dbo" auto-import="false">
+    <class name="com.sss.seatmgmt.model.Employee" table="EMPLOYEE">
+        <id name="empId" type="int" >
+            <column name="EMP_ID" />
+        </id>
+
+        <property name="empName" type="string">
+            <column name="EMP_NAME" length="50" not-null="true" />
+        </property>
+        <property name="empGender" type="char">
+            <column name="EMP_GENDER" not-null="true" />
+        </property>
+        <property name="empDesignation" type="string">
+            <column name="EMP_DESIGNATION" length="100" />
+        </property>
+        <property name="empTeam" type="string">
+            <column name="EMP_TEAM" length="100"  />
+        </property>
+		<one-to-one name="empLocation" class="com.sss.seatmgmt.model.Location"
+			cascade="save-update"></one-to-one>
+ 
+    </class>
+</hibernate-mapping>

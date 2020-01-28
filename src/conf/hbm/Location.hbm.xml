@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping schema="dbo" auto-import="false">
+    <class name="com.sss.seatmgmt.model.Location" table="LOCATION">
+        <id name="locId" type="int" >
+            <column name="LOC_ID" />
+            <!-- <generator class="foreign">
+				<param name="property">employee</param>
+			</generator> -->
+        </id>
+
+        <property name="locName" type="string">
+            <column name="LOC_NAME" length="50"  />
+        </property>
+        <property name="locPosX" type="int">
+            <column name="LOC_POSX" not-null="true" />
+        </property>
+        <property name="locPosY" type="int">
+            <column name="LOC_POSY" not-null="true" />
+        </property>
+        <!-- <one-to-one name="employee" class="com.sss.seatmgmt.model.Employee" ></one-to-one> -->
+
+ 
+    </class>
+</hibernate-mapping>
