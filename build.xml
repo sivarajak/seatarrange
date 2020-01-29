@@ -1,0 +1,274 @@
+<project name="SeatArrange" default="build" basedir=".">
+
+<!-- ant logic implementation 
+<taskdef resource="net/sf/antcontrib/antlib.xml" />-->
+
+<!-- Import Build Configuration Property File -->
+<property file="build.properties" />
+
+<target name="config.build">
+	<echo>Config build with respect to env</echo>
+	<copy todir="${project.dist.dir}/configurations" preservelastmodified="true" overwrite="true">
+	<fileset dir="${project.dir}/properties">
+		<exclude name="env/**" />
+	</fileset>
+	</copy>
+	<copy todir="${project.dist.dir}/configurations" preservelastmodified="true" overwrite="true">
+		<fileset dir="${project.dir}/properties/env/${build.env}">
+			<include name="**/**" />
+		</fileset>
+	</copy>
+</target>
+
+
+<!-- Clean Build -->
+<target name="clean" depends="clean.build" description="Clean build and dist directories" />
+
+<!-- ========================================================================== -->
+<!-- Clean up before the build                                                  -->
+<!-- ========================================================================== -->
+<target name="clean.build" description="Remove all temporary build files.">
+<echo>Remove all temporary build files.</echo>
+<delete dir="${project.dist.dir}" failonerror="false" />
+
+</target>
+
+<!-- ============================================================================= -->
+<!-- Do everything and update exploded war                                         -->
+<!-- ============================================================================= -->
+
+<!-- Development time bulid -->
+	
+<target name="build" depends="clean,init,compile,create.webapp.war" description="Compile and update exploded war" />
+	
+<target name="cit_build" depends="clean,init,compile,config.build,create.webapp.war,run.cit.build" description="Compile and update exploded war" />
+
+<!-- Before SVN checkIn time bulid -->
+<target name="buildAll" depends="stopServer,clean,init,compile,config.build,create.webapp.war,run.cit.build,startServer" description="Compile and update exploded war" />
+
+<!-- ============================================================================= -->
+<!-- Prepare compiling directories for source code.                                -->
+<!-- ============================================================================= -->
+<target name="init" description="Pre-Compile tasks">
+<echo>Pre-Compile tasks.</echo>
+<mkdir dir="${project.dist.dir}/${webapp.name}/WEB-INF/classes" />
+<mkdir dir="${project.dist.dir}/${webapp.name}/WEB-INF/lib" />
+</target>
+
+<!-- ============================================================================= -->
+<!-- Compile all source code.                                                      -->
+<!-- ============================================================================= -->
+<target name="compile" depends="compile.war" description="Compile all source code" />
+
+<target name="compile.war" depends="compile.main" description="Compile main source code to war">
+
+<!-- Copy core web app files to dist now they have had overrides applied -->
+<copy todir="${project.dist.dir}/${webapp.name}" preservelastmodified="true">
+<fileset dir="${project.dir}/WebContent">
+
+</fileset>
+	
+</copy>
+	
+	<copy todir="${project.dist.dir}/${webapp.name}/WEB-INF/classes" preservelastmodified="true">
+
+	<fileset dir="${project.dir}/src">
+		<exclude name="com/**" />
+	</fileset>	
+	</copy>
+
+</target>
+
+
+
+<!-- Complie Source and Junit Src -->
+<target name="compile.main" description="Compile main source code">
+<!-- set this to true, but can be overridden by user  -->
+<property name="fail.compile.main" value="true" />
+<javac destdir="${project.dist.dir}/${webapp.name}/WEB-INF/classes" debug="${compile.debug}" 
+	deprecation="${compile.deprecation}" failonerror="${fail.compile.main}" target="${java.target}" source="${java.source}" 
+	bootclasspath="${java.bootclasspath}" extdirs="${java.extdirs}">
+<classpath>
+<fileset dir="${project.lib.dir}">
+<include name="*.jar" />
+</fileset>
+
+</classpath>
+<src path="${project.src.dir}" />
+<include name="**/*.java" />
+</javac>
+
+</target>
+
+
+<path id="project.test.classpath">
+<fileset dir="${project.lib.dir}">
+<include name="*.jar" />
+</fileset>
+
+<pathelement location="${project.dist.dir}/${webapp.name}/WEB-INF/classes">
+</pathelement>
+</path>
+
+<!-- ========================================================================== -->
+<!-- creates webapp version war in dist & deliverables                                              -->
+<!-- ========================================================================== -->
+
+<target name="create.webapp.war" description="creates webapp version war in dist and deliverables">
+<echo>InSide create.webapp.war</echo>
+<jar destfile="${project.dist.dir}/${webapp.name}-${webapp.version}.war" basedir="${project.dist.dir}/${webapp.name}" >
+	</jar>
+</target>
+
+
+<!--<taskdef name="wlserver" classpath="${project.dir}\lib\weblogic.jar" classname="weblogic.ant.taskdefs.management.WLServer" />-->
+<target name="startServer">
+<tstamp>
+<format property="serverstarttimestamp" pattern="yyyy-MM-dd_HH-mm-ss" />
+</tstamp>
+<wlserver dir="${wlserver.beahome}${wlserver.dir}" host="${wlserver.host}" port="${wlserver.port}" username="${server.username}" password="${server.password}" servername="${server.name}" domainname="${wlserver.domainname}" weblogichome="${wlserver.weblogichome}" beahome="${wlserver.beahome}" productionmodeenabled="false" classpath="${wlserver.classpath}" classpathref="classpath.weblogic" jvmargs="-Xmx512m -Xms256m -XX:MaxPermSize=512m" action="start" noexit="true">
+<jvmarg value="-Dcom.sun.xml.namespace.QName.useCompatibleSerialVersionUID=1.0" />
+</wlserver>
+<tstamp>
+<format property="serverstarttimestamp1" pattern="yyyy-MM-dd_HH-mm-ss" />
+</tstamp>
+<echo>Server Started</echo>
+</target>
+
+<target name="stopServer">
+<tstamp>
+<format property="stopservertimestamp" pattern="yyyy-MM-dd_HH-mm-ss" />
+</tstamp>
+<exec executable="${wlserver.beahome}${adminserver}" />
+<tstamp>
+<format property="stopservertimestamp1" pattern="yyyy-MM-dd_HH-mm-ss" />
+</tstamp>
+<echo>Server Stopped</echo>
+</target>
+
+<!-- Cit Build Scripts   -->
+<property name="emma.enabled" value="true" />
+<property name="emma.filter" value="-*.nat.* -*.unittest.*" />
+<path id="classpath">
+	<fileset dir="lib" includes="*.jar" />
+	<fileset dir="tools/checkstyle-5.5" includes="*.jar" />
+	<fileset dir="tools/findbugs-2.0.1-rc1/lib" includes="*.jar" />
+</path>
+
+<path id="ant.classpath">
+<path refid="emma.classpath" />
+<fileset dir="lib">
+<include name="*.jar" />
+</fileset>
+</path>
+
+<path id="emma.classpath">
+<pathelement location="lib/emma.jar" />
+<pathelement location="lib/emma_ant.jar" />
+</path>
+
+<path id="svnant.classpath">
+<fileset dir="${basedir}/lib/svnjars">
+<include name="*.jar" />
+</fileset>
+</path>
+
+<path id="weblogic.classpath">
+<fileset dir="${project.dir}/lib">
+<include name="weblogic.jar" />
+</fileset>
+</path>
+<target name="run.cit.build" depends="init-cit,
+runfindbugs,
+runcheckstyle,
+run.emma.instrument,
+runjunit,
+runjunitreport,
+runemmareport">
+</target>
+
+<target name="init-cit">
+<mkdir dir="reports" />
+<echo>Init-cit Completed</echo>
+</target>
+	
+<target name="runfindbugs">
+<mkdir dir="reports/findbugs" />
+<taskdef name="findbugs" classname="edu.umd.cs.findbugs.anttask.FindBugsTask" classpathref="classpath" />
+<findbugs home="tools/findbugs-2.0.1-rc1" includeFilter="build/findbugs/DSO_findbug.xml" reportLevel="low" output="xml:withMessages" 
+	timeout="90000000" jvmargs="-Xmx1024m" failonerror="true" outputFile="reports/findbugs/findbugs_results.xml">
+<class location="dist/${webapp.name}/WEB-INF/classes" />
+</findbugs>
+<echo>Findbugs Completed</echo>
+</target>
+
+<target name="runcheckstyle">
+<mkdir dir="reports/checkstyle" />
+<taskdef name="checkstyle" classname="com.puppycrawl.tools.checkstyle.CheckStyleTask" classpathref="classpath" />
+<checkstyle config="build/checkstyle/sun_checks.xml" failOnViolation="false">
+<formatter type="xml" tofile="reports/checkstyle/checkstyle_errors.xml" />
+<fileset dir="src" includes="**/*.java"  />
+</checkstyle>
+
+<style in="reports/checkstyle/checkstyle_errors.xml" out="reports/checkstyle/checkstyle_errors.html" style="build/checkstyle/checkstyle-frames.xsl" />
+<echo>Checkstyle Completed</echo>
+</target>
+
+<target name="runjunit">
+<mkdir dir="reports/junit/junitresults" />
+<junit reloading="true" printsummary="yes" fork="yes" haltonfailure="no" showoutput="yes">
+<classpath refid="ant.classpath" />
+<classpath refid="emma.classpath" />
+<classpath refid="weblogic.classpath" />
+<!-- Adding files into classpath-->
+
+<classpath location="${basedir}/dist/${webapp.name}/WEB-INF/classes" />
+
+<formatter type="xml" />
+<formatter type="brief" usefile="false" />
+<jvmarg value="-Demma.coverage.out.file=${basedir}/coverage.ec" />
+<jvmarg value="-Demma.coverage.out.merge=true" />
+<batchtest fork="false" todir="reports/junit/junitresults">
+<fileset dir="${basedir}/test/bin">
+<include name="**/*Test*" />
+</fileset>
+</batchtest>
+</junit>
+<echo>Junit completed </echo>
+</target>
+
+<target name="runjunitreport">
+<junitreport todir="reports/junit">
+<fileset dir="reports/junit/junitresults">
+<include name="TEST-*.xml" />
+</fileset>
+<report format="frames" todir="reports/junit" />
+</junitreport>
+<echo>Junit Report Generation Completed</echo>
+</target>
+
+<taskdef resource="emma_ant.properties" classpathref="emma.classpath" />
+
+<target name="runemmareport">
+<mkdir dir="reports/emma" />
+<emma>
+<report depth="method">
+<infileset dir="${basedir}" includes="*.em,*.ec" />
+<html outfile="reports/emma/report_emma_codecoverage.html" />
+<xml outfile="reports/emma/report_emma_codecoverage.xml" />
+</report>
+</emma>
+<echo>Code Coverage Report Generation Completed</echo>
+</target>
+
+<target name="run.emma.instrument">
+<emma>
+<instr instrpath="dist/${webapp.name}/WEB-INF/classes" destdir="${basedir}" metadatafile="${basedir}/coverage.em" mode="overwrite" filter="${emma.filter}">
+
+</instr>
+</emma>
+<echo>Emma Instrumentation Completed</echo>
+</target>
+
+
+</project>
