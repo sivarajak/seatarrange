@@ -1,6 +1,5 @@
 package com.sss.seatmgmt.dao;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.hibernate.Session;
@@ -35,7 +34,7 @@ public class EmployeeDAO {
 	
 	public Employee getEmployeeById(int id) {
 		Session session = HibernateUtil.getCurrentSession();
-		Employee employee = (Employee)session.get(Employee.class, id);
+		Employee employee = session.get(Employee.class, id);
 		return employee;
 	}
 
